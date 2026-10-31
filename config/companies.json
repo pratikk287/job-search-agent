@@ -1,0 +1,302 @@
+{
+  "_note": "Employer career sites scanned directly. ats: greenhouse | lever | ashby | smartrecruiters | workday | amazon. Add more from the Settings tab by pasting a careers URL.",
+  "companies": [
+    {
+      "name": "Amazon",
+      "ats": "amazon",
+      "domain": "amazon.com"
+    },
+    {
+      "name": "Meesho",
+      "ats": "lever",
+      "slug": "meesho",
+      "domain": "meesho.com"
+    },
+    {
+      "name": "CRED",
+      "ats": "lever",
+      "slug": "cred",
+      "domain": "cred.club"
+    },
+    {
+      "name": "Mindtickle",
+      "ats": "lever",
+      "slug": "mindtickle",
+      "domain": "mindtickle.com"
+    },
+    {
+      "name": "Pocket FM",
+      "ats": "lever",
+      "slug": "pocketfm",
+      "domain": "pocketfm.com"
+    },
+    {
+      "name": "Porter",
+      "ats": "lever",
+      "slug": "porter",
+      "domain": "porter.in"
+    },
+    {
+      "name": "Groww",
+      "ats": "greenhouse",
+      "slug": "groww",
+      "domain": "groww.in"
+    },
+    {
+      "name": "InMobi",
+      "ats": "greenhouse",
+      "slug": "inmobi",
+      "domain": "inmobi.com"
+    },
+    {
+      "name": "Druva",
+      "ats": "greenhouse",
+      "slug": "druva",
+      "domain": "druva.com"
+    },
+    {
+      "name": "slice",
+      "ats": "greenhouse",
+      "slug": "slice",
+      "domain": "sliceit.com"
+    },
+    {
+      "name": "Zeta Global",
+      "ats": "greenhouse",
+      "slug": "zetaglobal",
+      "domain": "zetaglobal.com"
+    },
+    {
+      "name": "Stripe",
+      "ats": "greenhouse",
+      "slug": "stripe",
+      "domain": "stripe.com"
+    },
+    {
+      "name": "Databricks",
+      "ats": "greenhouse",
+      "slug": "databricks",
+      "domain": "databricks.com"
+    },
+    {
+      "name": "Okta",
+      "ats": "greenhouse",
+      "slug": "okta",
+      "domain": "okta.com"
+    },
+    {
+      "name": "Twilio",
+      "ats": "greenhouse",
+      "slug": "twilio",
+      "domain": "twilio.com"
+    },
+    {
+      "name": "Coinbase",
+      "ats": "greenhouse",
+      "slug": "coinbase",
+      "domain": "coinbase.com"
+    },
+    {
+      "name": "Airbnb",
+      "ats": "greenhouse",
+      "slug": "airbnb",
+      "domain": "airbnb.com"
+    },
+    {
+      "name": "Agoda",
+      "ats": "greenhouse",
+      "slug": "agoda",
+      "domain": "agoda.com"
+    },
+    {
+      "name": "Figma",
+      "ats": "greenhouse",
+      "slug": "figma",
+      "domain": "figma.com"
+    },
+    {
+      "name": "Atlan",
+      "ats": "ashby",
+      "slug": "atlan",
+      "domain": "atlan.com"
+    },
+    {
+      "name": "Sarvam AI",
+      "ats": "ashby",
+      "slug": "sarvam",
+      "domain": "sarvam.ai"
+    },
+    {
+      "name": "Composio",
+      "ats": "ashby",
+      "slug": "composio",
+      "domain": "composio.dev"
+    },
+    {
+      "name": "Notion",
+      "ats": "ashby",
+      "slug": "notion",
+      "domain": "notion.so"
+    },
+    {
+      "name": "Swiggy",
+      "ats": "smartrecruiters",
+      "slug": "swiggy",
+      "domain": "swiggy.in"
+    },
+    {
+      "name": "Freshworks",
+      "ats": "smartrecruiters",
+      "slug": "freshworks",
+      "domain": "freshworks.com"
+    },
+    {
+      "name": "Adobe",
+      "ats": "workday",
+      "host": "adobe.wd5",
+      "site": "external_experienced",
+      "domain": "adobe.com"
+    },
+    {
+      "name": "Salesforce",
+      "ats": "workday",
+      "host": "salesforce.wd12",
+      "site": "External_Career_Site",
+      "domain": "salesforce.com"
+    },
+    {
+      "name": "Mastercard",
+      "ats": "workday",
+      "host": "mastercard.wd1",
+      "site": "CorporateCareers",
+      "domain": "mastercard.com"
+    },
+    {
+      "name": "PayPal",
+      "ats": "workday",
+      "host": "paypal.wd1",
+      "site": "jobs",
+      "domain": "paypal.com"
+    },
+    {
+      "name": "NVIDIA",
+      "ats": "workday",
+      "host": "nvidia.wd5",
+      "site": "NVIDIAExternalCareerSite",
+      "domain": "nvidia.com"
+    },
+    {
+      "name": "Target",
+      "ats": "workday",
+      "host": "target.wd5",
+      "site": "targetcareers",
+      "domain": "target.com"
+    },
+    {
+      "name": "Unilever",
+      "ats": "workday",
+      "host": "unilever.wd3",
+      "site": "Unilever_Experienced_Professionals",
+      "domain": "unilever.com"
+    },
+    {
+      "name": "6sense",
+      "ats": "greenhouse",
+      "slug": "6sense",
+      "domain": "6sense.com"
+    },
+    {
+      "name": "Adyen",
+      "ats": "greenhouse",
+      "slug": "adyen",
+      "domain": "adyen.com"
+    },
+    {
+      "name": "Amplitude",
+      "ats": "ashby",
+      "slug": "amplitude",
+      "domain": "amplitude.com"
+    },
+    {
+      "name": "Coursera",
+      "ats": "greenhouse",
+      "slug": "coursera",
+      "domain": "coursera.org"
+    },
+    {
+      "name": "Datadog",
+      "ats": "greenhouse",
+      "slug": "datadog",
+      "domain": "datadoghq.com"
+    },
+    {
+      "name": "Elastic",
+      "ats": "greenhouse",
+      "slug": "elastic",
+      "domain": "elastic.co"
+    },
+    {
+      "name": "Mixpanel",
+      "ats": "greenhouse",
+      "slug": "mixpanel",
+      "domain": "mixpanel.com"
+    },
+    {
+      "name": "MongoDB",
+      "ats": "greenhouse",
+      "slug": "mongodb",
+      "domain": "mongodb.com"
+    },
+    {
+      "name": "New Relic",
+      "ats": "greenhouse",
+      "slug": "newrelic",
+      "domain": "newrelic.com"
+    },
+    {
+      "name": "Salesloft",
+      "ats": "greenhouse",
+      "slug": "salesloft",
+      "domain": "salesloft.com"
+    },
+    {
+      "name": "Snowflake",
+      "ats": "ashby",
+      "slug": "snowflake",
+      "domain": "snowflake.com"
+    },
+    {
+      "name": "Spotdraft",
+      "ats": "ashby",
+      "slug": "spotdraft",
+      "domain": "spotdraft.com"
+    },
+    {
+      "name": "SurveyMonkey",
+      "ats": "ashby",
+      "slug": "surveymonkey",
+      "domain": "surveymonkey.com"
+    },
+    {
+      "name": "ZoomInfo",
+      "ats": "greenhouse",
+      "slug": "zoominfo",
+      "domain": "zoominfo.com"
+    },
+    {
+      "name": "Logitech",
+      "ats": "workday",
+      "host": "logitech.wd5",
+      "site": "Logitech",
+      "domain": "logitech.com",
+      "auto": true
+    },
+    {
+      "name": "Tilt",
+      "ats": "ashby",
+      "slug": "tilthq",
+      "domain": "tilt.com",
+      "auto": true
+    }
+  ]
+}

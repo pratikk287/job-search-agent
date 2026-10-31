@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Job Search</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (_) {}</script>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-inner">
+    <div class="brand">Job Search</div>
+    <nav class="seg" id="tabs" aria-label="Sections">
+      <button data-tab="main" class="on">Main</button>
+      <button data-tab="sheet">Sheet <span class="count" id="sheetCount"></span></button>
+    </nav>
+    <div class="bar-actions">
+      <button class="btn primary" id="scanBtn">Scan for jobs</button>
+      <button class="icon" id="themeBtn" title="Light / dark" aria-label="Switch light or dark mode"></button>
+      <button class="icon" id="gearBtn" title="Settings" aria-label="Settings"></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="main" class="tab on"></section>
+  <section id="sheet" class="tab"></section>
+</main>
+
+<aside id="drawer" class="drawer hidden"><div class="scrim" data-close></div><div class="panel" id="drawerBody"></div></aside>
+<aside id="settingsDrawer" class="drawer hidden"><div class="scrim" data-close></div>
+  <div class="panel wide"><div class="p-head"><h2>Settings</h2><button class="icon" data-close aria-label="Close">&times;</button></div><div id="settingsBody"></div></div></aside>
+<div id="modal" class="modal hidden"><div class="scrim" data-modal-close></div><div class="sheet" id="modalBody"></div></div>
+
+<div id="scanBar" class="scanbar hidden" role="status" aria-live="polite"></div>
+<div id="toast" class="toast hidden"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

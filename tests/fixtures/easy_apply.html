@@ -1,0 +1,11 @@
+<!doctype html><html><body><h1>Growth Marketing Manager</h1>
+<button class="jobs-apply-button" onclick="document.getElementById('m').style.display='block'">Easy Apply</button>
+<div id="m" style="display:none">
+ <div id="s1"><label for="fn">First name</label><input id="fn" required><label for="em">Email address</label><input id="em" required>
+  <label for="ph">Mobile phone number</label><input id="ph" required>
+  <button onclick="s1.style.display='none';s2.style.display='block'">Next</button></div>
+ <div id="s2" style="display:none"><label for="cv">Upload resume</label><input id="cv" type="file">
+  <label for="np">Notice period (days)</label><input id="np" type="number"><label for="ectc">Expected CTC</label><input id="ectc">
+  <button onclick="s2.style.display='none';s3.style.display='block'">Review</button></div>
+ <div id="s3" style="display:none"><p>Review your application</p><button onclick="window.SUBMITTED=true">Submit application</button></div>
+</div></body></html>

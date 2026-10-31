@@ -1,0 +1,52 @@
+{
+  "max_job_age_days": 10,
+  "default_view_age_days": 7,
+  "require_posted_date": true,
+  "india_only": true,
+  "accept_remote_india": true,
+  "search_keywords": [
+    "product marketing manager",
+    "growth marketing manager",
+    "associate product manager",
+    "growth product manager",
+    "category manager",
+    "marketplace growth",
+    "seller growth",
+    "ecommerce growth",
+    "commercial strategy",
+    "go-to-market"
+  ],
+  "scan_cities": [
+    "Bengaluru",
+    "Pune",
+    "Gurugram",
+    "Mumbai",
+    "Hyderabad"
+  ],
+  "min_score_to_shortlist": 70,
+  "followup_after_days": 5,
+  "max_emails_per_day": 10,
+  "llm": {
+    "enabled": true,
+    "model": "claude-opus-5-5",
+    "effort": "medium"
+  },
+  "http_timeout_seconds": 20,
+  "aggregator_max_requests_per_scan": 20,
+  "naukri_max_searches_per_scan": 4,
+  "indeed_max_searches_per_scan": 3,
+  "naukri_max_detail_pages_per_scan": 12,
+  "indeed_max_detail_pages_per_scan": 8,
+  "firecrawl_min_seconds_between_calls": 6,
+  "apollo_max_reveals_per_job": 3,
+  "people_per_job": 3,
+  "company_share": 0.5,
+  "auto_balance": true,
+  "group_weights": {
+    "linkedin": 0.34,
+    "naukri": 0.33,
+    "portals": 0.33
+  },
+  "apify_results_per_query": 25,
+  "apify_max_usd_per_scan": 0.6
+}

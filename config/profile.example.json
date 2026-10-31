@@ -1,0 +1,99 @@
+{
+  "_template": true,
+  "_note": "TEMPLATE. Setup (see CLAUDE.md) replaces every value with the candidate's own details, taken from their resumes. Not independently verified by the app.",
+  "name": "Your Name",
+  "first_name": "Your",
+  "last_name": "Name",
+  "email": "you@example.com",
+  "phone": "+91 90000 00000",
+  "linkedin_url": "https://www.linkedin.com/in/your-profile/",
+  "portfolio_url": "",
+  "current_city": "Bengaluru",
+  "total_experience_years": 4.0,
+  "post_mba_experience_years": 0,
+  "education": [
+    {
+      "degree": "Your degree",
+      "school": "Your school",
+      "start": "2016",
+      "end": "2020",
+      "end_year": 2020,
+      "score": ""
+    }
+  ],
+  "current_employer": "Your Company",
+  "current_title": "Your Title",
+  "current_title_candidates": [
+    "Your Title"
+  ],
+  "current_ctc_lpa": 10,
+  "target_ctc_lpa": {
+    "min": 12,
+    "max": 15
+  },
+  "notice_period": "30 days",
+  "preferred_locations": [
+    "Bengaluru",
+    "Pune"
+  ],
+  "open_locations": [],
+  "target_functions": [
+    "product_marketing",
+    "growth_marketing",
+    "product_management",
+    "marketplace_category",
+    "ecommerce_commercial",
+    "ai_product",
+    "tech_business"
+  ],
+  "weekly_application_target": {
+    "min": 10,
+    "max": 20
+  },
+  "resumes": {
+    "A": {
+      "label": "Resume A",
+      "file": "resumes/Resume_A.pdf",
+      "functions": [
+        "product_marketing",
+        "growth_marketing",
+        "product_management",
+        "ai_product",
+        "tech_business"
+      ]
+    },
+    "B": {
+      "label": "Resume B",
+      "file": "resumes/Resume_B.pdf",
+      "functions": [
+        "marketplace_category",
+        "ecommerce_commercial"
+      ]
+    }
+  },
+  "confirmed_fields": [],
+  "school_scores": {
+    "12th": "",
+    "10th": ""
+  },
+  "notice_period_days": 30,
+  "current_ctc": {
+    "total_lpa": 10,
+    "fixed_lpa": 10,
+    "variable_lpa": 0
+  },
+  "expected_ctc_lpa": 13,
+  "willing_to_relocate": true,
+  "work_mode": "Open to on-site, hybrid or remote",
+  "work_authorization": "Indian citizen; authorised to work in India, no sponsorship required",
+  "needs_sponsorship": false,
+  "previously_applied": "No",
+  "referral": "No",
+  "how_heard": "Company careers website",
+  "reason_for_leaving": "I'm looking for a role with broader ownership and scope.",
+  "relevant_experience": {},
+  "note_intro_hr": "",
+  "note_intro_team": "",
+  "extras_line": "",
+  "_never_autofill": "Date of birth, full address, PAN/Aadhaar or other ID numbers, gender/diversity questions, consent checkboxes"
+}

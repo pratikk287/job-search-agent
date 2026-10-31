@@ -1,0 +1,9 @@
+.env
+data/*
+!data/.gitkeep
+resumes/*
+!resumes/.gitkeep
+config/profile.json
+__pycache__/
+*.pyc
+*.log

@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Apply - Test Co India</title></head><body>
+<form onsubmit="window.SUBMITTED = true; return false;">
+  <div><label for="fn">First Name *</label><input id="fn" required></div>
+  <div><label for="ln">Last Name *</label><input id="ln" required></div>
+  <div><label for="em">Email *</label><input id="em" type="email" required></div>
+  <div><label for="ph">Mobile Number *</label><input id="ph" required></div>
+  <div><label for="cv">Upload Resume *</label><input id="cv" type="file" required></div>
+  <div><label for="dob">Date of Birth *</label><input id="dob" required></div>
+  <div><label for="pan">PAN Number</label><input id="pan"></div>
+  <div><label for="cur">Current CTC (in Lakhs) *</label><input id="cur" required></div>
+  <div><label for="fix">Current Fixed CTC (INR) *</label><input id="fix" type="number" required></div>
+  <div><label for="exp">Expected CTC *</label><input id="exp" required></div>
+  <div><label for="np">Notice Period *</label><select id="np" required><option>Select</option><option>Immediate</option><option>15 days or less</option><option>1 Month</option><option>2 Months</option><option>3 Months</option></select></div>
+  <div><label for="tot">Total Experience (years) *</label><input id="tot" type="number" step="0.1" required></div>
+  <div><label for="pm">Years of experience in product marketing *</label><input id="pm" required></div>
+  <div><label for="mba">MBA CGPA / Percentage</label><input id="mba"></div>
+  <div><label for="ug">Graduation Percentage</label><input id="ug"></div>
+  <div><label for="xii">12th Percentage</label><input id="xii"></div>
+  <div><label for="x">10th Percentage</label><input id="x"></div>
+  <div><label for="rel">Are you willing to relocate? *</label><select id="rel" required><option value="">--</option><option>Yes</option><option>No</option></select></div>
+  <fieldset><legend>Will you now or in the future require visa sponsorship? *</legend>
+    <label><input type="radio" name="spons" value="y" required> Yes</label><label><input type="radio" name="spons" value="n"> No</label></fieldset>
+  <fieldset><legend>Have you previously applied to or worked at Test Co? *</legend>
+    <label><input type="radio" name="prev" value="y" required> Yes</label><label><input type="radio" name="prev" value="n"> No</label></fieldset>
+  <div><label for="why">Reason for leaving your current job *</label><textarea id="why" required></textarea></div>
+  <div><label for="hear">How did you hear about us?</label><select id="hear"><option>Select</option><option>LinkedIn</option><option>Company careers website</option><option>Referral</option></select></div>
+  <div><label for="gen">Gender</label><select id="gen"><option>Select</option><option>Male</option><option>Female</option><option>Prefer not to say</option></select></div>
+  <div><label><input type="checkbox" required> I confirm the information is accurate *</label></div>
+  <button type="submit">Submit</button>
+</form></body></html>
