@@ -1,4 +1,4 @@
-# Job Search Agent
+﻿# Job Search Agent
 
 A local app that finds fresh jobs in India, ranks them against your resumes, opens each application form pre-filled
 in Chrome, finds the HR and hiring-team people for the role, writes a personal LinkedIn note for each, and emails
@@ -17,7 +17,7 @@ them from your Gmail. You press Submit on every application and you send every L
 2. In a terminal:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/job-search-agent.git
+git clone https://github.com/pratikk287/job-search-agent.git
 cd job-search-agent
 claude
 ```
