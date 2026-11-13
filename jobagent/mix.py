@@ -14,8 +14,9 @@ import requests
 from . import config
 from .sources import aggregators, apify
 
-GROUP_OF = {"apify": "linkedin", "naukri": "naukri", "indeed": "naukri", "jsearch": "portals", "adzuna": "portals", "jooble": "portals"}
-GROUP_LABEL = {"company": "Company sites", "linkedin": "LinkedIn", "naukri": "Naukri & Indeed", "portals": "Other portals"}
+GROUP_OF = {"apify": "linkedin", "naukri": "naukri", "indeed": "naukri", "jsearch": "portals", "adzuna": "portals", "jooble": "portals",
+            "himalayas": "remote", "remotive": "remote", "jobicy": "remote", "remoteok": "remote"}
+GROUP_LABEL = {"company": "Company sites", "linkedin": "LinkedIn", "naukri": "Naukri & Indeed", "portals": "Other portals", "remote": "Remote abroad"}
 SERVICE_SPLIT = {"naukri": {"naukri": 0.6, "indeed": 0.4}, "portals": {"adzuna": 0.45, "jsearch": 0.35, "jooble": 0.2},
                  "linkedin": {"apify": 1.0}}
 DEFAULT_WEIGHTS = {"linkedin": 0.34, "naukri": 0.33, "portals": 0.33}

@@ -7,8 +7,13 @@ them from your Gmail. You press Submit on every application and you send every L
 - Jobs from 46 company career sites (free) plus LinkedIn, Naukri, Indeed and other portals, within a strict credit budget
 - Only roles posted in the last 10 days; scam and closed-listing checks; 0 to 100 fit score
 - One click: **Auto-fill & apply** (form pre-filled, people found, emails reviewed and sent)
+- Remote jobs at US, UK, Europe and APAC companies that hire people in India (free boards: Himalayas, Jobicy, RemoteOK, Remotive)
+- Finds people who share your college or past company at each employer, and opens the LinkedIn note with it
 - Bounce and reply tracking, learns each company's email format
-- Dashboard with a Main tab and a Sheet tab (LinkedIn outreach), light and dark mode
+- **Prep** tab: crash courses (salary negotiation with your own numbers, common questions, product marketing, growth, PM,
+  category, case questions, remote jobs abroad), a prep brief per job, and an AI **mock interviewer** that scores you
+  (the mock interviewer needs an Anthropic API key; paste it in the Prep tab)
+- Dashboard with Main, Sheet (LinkedIn outreach) and Prep tabs, light and dark mode
 - Everything stays on your computer. Nothing is sent without you pressing a button.
 
 ## Quick start with Claude Code (easiest)
@@ -49,6 +54,7 @@ copy .env.example .env                                     # macOS/Linux: cp
 | `RAPIDAPI_KEY` | JSearch (many portals) | 200 searches a month |
 | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna India | free |
 | `JOOBLE_API_KEY` | Jooble | 500 requests |
+| `ANTHROPIC_API_KEY` | Mock interviews, full prep briefs, Claude-written cover letters and emails | paid per use (a mock interview costs a few rupees) |
 
 Half of all searches go to company career sites; when credits run low the app shifts more searches to those free sources.
 

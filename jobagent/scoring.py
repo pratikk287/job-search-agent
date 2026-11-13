@@ -91,7 +91,8 @@ def score_job(job):
     elif city in prof.get("open_locations", []):
         lc_pts, lc_reason = 12, f"{city} (open to it)"
     elif job.get("remote"):
-        lc_pts, lc_reason = 12, "Remote in India"
+        intl = "international" in (job.get("location") or "")
+        lc_pts, lc_reason = 12, "Remote for an international company, open to India" if intl else "Remote in India"
     elif city == "Delhi NCR" and "Gurugram" in preferred:
         lc_pts, lc_reason = 9, "Delhi NCR (near Gurugram)"
     elif city:

@@ -39,6 +39,9 @@ pip install -r requirements.txt
    (how they introduce themselves in a LinkedIn note, under 90 characters, e.g. "I own growth at Acme."),
    plus an optional `extras_line` (one sentence of extra credentials for emails). Leave `relevant_experience` empty
    unless they give numbers they can stand behind.
+   Common ground (used to find alumni and ex-colleagues at each employer) is built automatically from `education[].school`
+   and the employers on the resume. If the names are long or generic, set `common_ground` explicitly, e.g.
+   `[{"label": "IIM Indore alum", "kind": "school", "match": ["iim indore"], "phrase": "Fellow IIM Indore alum here."}]`.
 5. Target roles: in `config/settings.json` set `search_keywords` (portal search phrases) and `scan_cities`.
    The role families that decide relevance live in `jobagent/keywords.py` (`FUNCTIONS`, exclusion patterns).
    They are written for product / marketing / growth / category roles. If the user targets other roles
@@ -56,6 +59,8 @@ Copy `.env.example` to `.env`. Never paste secrets into chat logs unnecessarily;
 | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna India | free | developer.adzuna.com |
 | `JOOBLE_API_KEY` | Jooble | 500 requests total | jooble.org/api/about |
 | Gmail | sending emails, bounce and reply tracking | free | connect inside the app: Settings > Gmail (needs a Google app password) |
+| `ANTHROPIC_API_KEY` | AI mock interviewer, full prep briefs, Claude-drafted cover letters and emails | paid per use | console.anthropic.com/settings/keys; the user can also paste it in the app's Prep tab |
+| none | remote jobs abroad that are open to India (Himalayas, Jobicy, RemoteOK, Remotive) | free | built in, on by default (`international_remote` in settings) |
 
 The app works with none of these (company sites only), and the dashboard's Settings shows which are active.
 Without `FIRECRAWL_API_KEY` the app cannot find HR / hiring-team people.

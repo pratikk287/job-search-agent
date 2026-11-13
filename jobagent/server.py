@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import apply as autoapply
 from . import mix
-from . import config, contacts, db, documents, outreach, people, report, resumes, scan, verify
+from . import config, contacts, db, documents, interview, outreach, people, prep, report, resumes, scan, verify
 from .keywords import FUNCTIONS
 from .sources import aggregators, importer
 from .sources.common import age_days
@@ -622,6 +622,91 @@ def linkedin_email_draft(row_id: int):
 @app.delete("/api/linkedin/{row_id}")
 def linkedin_delete(row_id: int):
     db.execute("DELETE FROM li_outreach WHERE id = ?", (row_id,))
+    return {"ok": True}
+
+
+# ------------------------------------------------------------------ prep: crash courses, job briefs, mock interviews
+
+@app.get("/api/prep/courses")
+def prep_courses():
+    return [{k: c[k] for k in ("id", "title", "minutes", "tag", "summary")} for c in prep.courses()]
+
+
+@app.get("/api/prep/courses/{cid}")
+def prep_course(cid: str):
+    c = prep.course(cid)
+    if not c:
+        raise HTTPException(404, "Course not found")
+    return c
+
+
+@app.get("/api/prep/job/{job_id}")
+def prep_job(job_id: str, refresh: bool = False):
+    b = prep.job_brief(job_id, refresh=refresh)
+    if not b:
+        raise HTTPException(404, "Job not found")
+    return b
+
+
+@app.get("/api/interviews")
+def interviews_list():
+    return {"kinds": {k: v[0] for k, v in interview.KINDS.items()}, "history": interview.history(),
+            "claude": interview.llm.available()}
+
+
+def _iv(fn, *a, **kw):
+    try:
+        return fn(*a, **kw)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except RuntimeError as e:
+        raise HTTPException(503, str(e))
+
+
+@app.post("/api/claude-key")
+def claude_key(body: dict = Body(...)):
+    """Save an Anthropic API key to .env after checking it works (lists models; uses no tokens)."""
+    import anthropic
+    key = (body.get("key") or "").strip()
+    if not key.startswith("sk-ant-"):
+        raise HTTPException(400, "That does not look like an Anthropic API key (it starts with sk-ant-).")
+    try:
+        anthropic.Anthropic(api_key=key, base_url="https://api.anthropic.com").models.list(limit=1)
+    except anthropic.AuthenticationError:
+        raise HTTPException(400, "Anthropic rejected that key. Copy it again from console.anthropic.com.")
+    except anthropic.APIError as e:
+        raise HTTPException(400, f"Could not check the key: {type(e).__name__}")
+    config.set_env({"ANTHROPIC_API_KEY": key})
+    return {"ok": True}
+
+
+@app.post("/api/interviews")
+def interviews_start(body: dict = Body(...)):
+    return _iv(interview.start, body.get("kind", "hr"), job_id=body.get("job_id") or None, role=body.get("role") or None,
+               company=body.get("company") or None, coach=bool(body.get("coach")))
+
+
+@app.get("/api/interviews/{iid}")
+def interviews_get(iid: int):
+    r = interview.get(iid)
+    if not r:
+        raise HTTPException(404, "Interview not found")
+    return r
+
+
+@app.post("/api/interviews/{iid}/answer")
+def interviews_answer(iid: int, body: dict = Body(...)):
+    return _iv(interview.answer, iid, body.get("text", ""))
+
+
+@app.post("/api/interviews/{iid}/finish")
+def interviews_finish(iid: int):
+    return _iv(interview.finish, iid)
+
+
+@app.delete("/api/interviews/{iid}")
+def interviews_delete(iid: int):
+    interview.delete(iid)
     return {"ok": True}
 
 

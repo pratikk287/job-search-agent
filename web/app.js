@@ -1,4 +1,4 @@
-// Job Search: two tabs (Main, Sheet), one-click Auto-fill & apply, live scan progress. Plain JS over the local API.
+// Job Search: three tabs (Main, Sheet, Prep), one-click Auto-fill & apply, live scan progress. Plain JS over the local API.
 "use strict";
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -69,7 +69,7 @@ function showTab(name) {
   $$(".tab").forEach(s => s.classList.toggle("on", s.id === name));
   renderCurrent();
 }
-function renderCurrent() { return TAB === "sheet" ? renderSheet() : renderMain(); }
+function renderCurrent() { return TAB === "sheet" ? renderSheet() : TAB === "prep" ? renderPrep() : renderMain(); }
 $$("#tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 
 // ------------------------------------------------------------------ scan with live progress bar
@@ -117,12 +117,14 @@ const PICKED = new Set();
 const scoreClass = s => s >= 85 ? "a" : s >= 70 ? "b" : s >= 55 ? "c" : "d";
 const ageTxt = d => d == null ? "" : d < 1 ? "today" : d < 2 ? "yesterday" : `${Math.round(d)} days ago`;
 const isApplied = j => ["applied", "interviewing", "offer"].includes(j.status);
+const isAbroad = j => ["himalayas", "remotive", "jobicy", "remoteok"].includes(j.source);
 
 function tagsFor(j) {
   const t = [];
   if (isApplied(j)) t.push('<span class="chip good">Applied</span>');
   else if (j.app_status === "executing") t.push('<span class="chip info">Form opened</span>');
   if (j.source_type === "employer") t.push('<span class="chip">Company site</span>');
+  if (isAbroad(j)) t.push('<span class="chip info" title="Remote role at a company abroad, open to people in India">Remote · abroad</span>');
   if (j.people) t.push(`<span class="chip">${j.people} people</span>`);
   if (j.verification_status === "closed") t.push('<span class="chip bad">Closed</span>');
   return t.join("");
@@ -133,8 +135,8 @@ async function renderMain() {
   if (!HEALTH) HEALTH = await api("/api/health");
   const jobs = await api("/api/jobs?max_age=10");
   const min = HEALTH.settings.min_score_to_shortlist;
-  const applied = jobs.filter(isApplied), open = jobs.filter(j => !isApplied(j)), best = open.filter(j => j.score >= min);
-  const list = (FILTER === "best" ? best : FILTER === "applied" ? applied : open)
+  const applied = jobs.filter(isApplied), open = jobs.filter(j => !isApplied(j)), best = open.filter(j => j.score >= min), abroad = open.filter(isAbroad);
+  const list = (FILTER === "best" ? best : FILTER === "applied" ? applied : FILTER === "abroad" ? abroad : open)
     .filter(j => !QUERY || `${j.title} ${j.company} ${j.city}`.toLowerCase().includes(QUERY.toLowerCase()));
   const issues = (HEALTH.issues || []).filter(i => !i.resolved);
   el.innerHTML = `
@@ -144,6 +146,7 @@ async function renderMain() {
     <div class="tools"><div class="seg" id="filters">
         <button data-f="best" class="${FILTER === "best" ? "on" : ""}">Best matches ${best.length}</button>
         <button data-f="all" class="${FILTER === "all" ? "on" : ""}">All ${open.length}</button>
+        <button data-f="abroad" class="${FILTER === "abroad" ? "on" : ""}" title="Remote jobs at US, UK, Europe and APAC companies that hire people in India">Remote abroad ${abroad.length}</button>
         <button data-f="applied" class="${FILTER === "applied" ? "on" : ""}">Applied ${applied.length}</button></div>
       <input type="search" id="q" placeholder="Search title, company, city" value="${esc(QUERY)}"></div>
     ${list.length ? `<div class="selbar ${PICKED.size ? "on" : ""}"><label class="row"><input type="checkbox" id="pickAll" ${list.every(j => PICKED.has(j.id)) ? "checked" : ""}> <span>${PICKED.size ? PICKED.size + " selected" : "Select all " + list.length}</span></label>
@@ -151,7 +154,7 @@ async function renderMain() {
       <div class="group">${list.map(j => `<div class="jrow ${PICKED.has(j.id) ? "picked" : ""}" data-id="${esc(j.id)}" tabindex="0" role="button">
         <input type="checkbox" class="pick" data-pick="${esc(j.id)}" ${PICKED.has(j.id) ? "checked" : ""} aria-label="Select ${esc(j.title)}">
         <span class="score ${scoreClass(j.score)}">${Math.round(j.score)}</span>
-        <span><span class="jtitle">${esc(j.title)}</span><span class="jsub">${esc(j.company)} · ${esc(j.city || "India")}${j.age_days != null ? " · " + ageTxt(j.age_days) : ""}</span></span>
+        <span><span class="jtitle">${esc(j.title)}</span><span class="jsub">${esc(j.company)} · ${esc(isAbroad(j) ? "Remote, open to India" : j.city || "India")}${j.age_days != null ? " · " + ageTxt(j.age_days) : ""}</span></span>
         <span class="jtags">${tagsFor(j)}</span>
         <button class="rowdel" data-deljob="${esc(j.id)}" title="Delete this job" aria-label="Delete ${esc(j.title)}">${ICON.trash}</button><span class="chev">›</span></div>`).join("")}</div>`
       : `<div class="card empty"><b>${jobs.length ? "Nothing here" : "No jobs yet"}</b>${jobs.length ? "Try another filter or clear the search." : "Press <b style='display:inline;font-size:inherit'>Scan for jobs</b> at the top right."}</div>`}`;
@@ -211,6 +214,7 @@ async function openJob(id) {
     <div class="cta">
       ${applied ? '<span class="chip good" style="font-size:14px;padding:6px 14px">✓ Applied</span>' : `<button class="btn primary big" id="applyBtn">Auto-fill &amp; apply</button>`}
       ${j.url ? `<a class="btn" href="${esc(j.url)}" target="_blank" rel="noopener">Open job page</a>` : ""}
+      <button class="btn" id="prepBtn">Prepare for interview</button>
     </div>
     <div id="stepsBox">${stepsHtml(session)}</div>
     ${!applied && (formOpen || session.finished && session.steps?.length) ? `<div class="card" style="margin-top:12px"><div class="row space"><span class="small muted">Review the form in Chrome and press <b>Submit</b> there.</span>
@@ -219,14 +223,14 @@ async function openJob(id) {
     ${showReview ? `<div class="card review"><div class="rv-title">Email HR and the hiring team</div>
       <p class="muted small" style="margin:2px 0 10px">Addresses marked <b>guess</b> are built from the company's email format and may be wrong. Fix or type the right one, untick anyone you do not want to email, then press Send.</p>
       ${rev.map(r => `<div class="rv" data-cid="${r.contact_id}"><label class="rv-top"><input type="checkbox" class="rv-send" ${r.email && r.ok ? "checked" : ""}>
-          <b>${esc(r.name || "Unknown")}</b><span class="chip ${r.who === "hr" ? "info" : "good"}">${r.who === "hr" ? "HR" : "Hiring team"}</span></label>
+          <b>${esc(r.name || "Unknown")}</b>${whoChip(r)}</label>
         <div class="muted small rv-role">${esc(r.title || "")}</div>
         <input class="rv-email" type="email" value="${esc(r.email)}" placeholder="name@company.com" autocomplete="off" spellcheck="false">
         <div class="small ${r.email && !r.ok ? "bad-t" : "muted"}">${r.email ? `<b>${["public", "verified"].includes(r.status) ? "Known address" : "Guess"}.</b> ` : ""}${esc(r.reason)}</div></div>`).join("")}
       <div class="row" style="margin-top:12px"><button class="btn primary" id="revSend">Send emails</button><button class="btn" id="revSkip">Skip emails</button></div></div>` : ""}
 
-    ${ppl.length ? `<div class="section-title">HR and hiring team</div><div class="group">${ppl.map(p => `<div class="item"><div class="row space"><div><b>${esc(p.name)}</b>
-      <div class="muted small">${esc(p.title || "")}</div></div><span class="chip ${p.who === "hr" ? "info" : "good"}">${p.who === "hr" ? "HR" : "Hiring team"}</span></div></div>`).join("")}
+    ${ppl.length ? `<div class="section-title">People to contact</div><div class="group">${ppl.map(p => `<div class="item"><div class="row space"><div><b>${esc(p.name)}</b>
+      <div class="muted small">${esc(p.title || "")}</div></div>${whoChip(p)}</div></div>`).join("")}
       <div class="item"><a href="#" id="toSheet">Open their LinkedIn notes in the Sheet ›</a></div></div>` : ""}
 
     ${mails.length ? `<div class="section-title">Emails</div><div class="group">${mails.map(a => {
@@ -253,6 +257,7 @@ async function openJob(id) {
   const rk = $("#revSkip"); if (rk) rk.onclick = () => run(rk, async () => { await post(`/api/jobs/${id}/email-team`, { emails: [] }); toast("No emails sent for this job"); openJob(id); });
   const sub = $("#submittedBtn"); if (sub) sub.onclick = () => run(sub, async () => { await post(`/api/jobs/${id}/submitted`); toast("Marked as applied"); openJob(id); });
   const sk = $("#skipBtn"); if (sk) sk.onclick = () => run(sk, async () => { if (!confirm("Delete this job from your list? It will not come back on the next scan.")) return; await post("/api/jobs/delete", { ids: [id] }); closePanels(); toast("Job deleted"); });
+  $("#prepBtn").onclick = () => { PREP.job = id; PREP.view = "home"; PREP.iv = null; closePanels(); showTab("prep"); };
   const ts = $("#toSheet"); if (ts) ts.onclick = e => { e.preventDefault(); closePanels(); showTab("sheet"); };
   $$("[data-send]").forEach(b => b.onclick = () => run(b, async () => {
     await post(`/api/actions/${b.dataset.send}/approve`, { confirm: true });
@@ -303,6 +308,8 @@ let SHEET_FILTER = "todo";
 async function refreshSheetCount() {
   try { const rows = await api("/api/linkedin"); const n = rows.filter(r => !r.note_sent_at).length; $("#sheetCount").textContent = n || ""; } catch (_) {}
 }
+const whoChip = r => (r.who === "hr" ? '<span class="chip info">HR</span>' : r.who === "alum" ? '<span class="chip warn" title="Shares your college or company. Ask for a referral.">Alum / ex-colleague</span>' : '<span class="chip good">Hiring team</span>')
+  + (r.common ? ` <span class="chip common" title="You share this with them. The note mentions it.">★ ${esc(r.common)}</span>` : "");
 const stageOf = r => r.replied_at ? ["replied", "Replied", "good"] : r.message_sent_at ? ["msg", "Message sent", "info"] : r.note_sent_at ? ["note", "Waiting for them to accept", "warn"] : ["todo", "To connect", ""];
 async function renderSheet() {
   const [rows, pats] = await Promise.all([api("/api/linkedin"), api("/api/email-patterns")]);
@@ -320,7 +327,7 @@ async function renderSheet() {
          <button class="btn" data-sendmail ${HEALTH?.integrations?.smtp ? "" : "disabled"}>Send email</button>`;
     return `<div class="pcard ${stage}" data-li="${r.id}">
       <div class="pc-main"><span class="avatar">${esc((r.name || "?").trim()[0] || "?")}</span>
-        <div class="pc-who"><div><b>${esc(r.name)}</b> <span class="chip ${r.who === "hr" ? "info" : "good"}">${r.who === "hr" ? "HR" : "Hiring team"}</span> <span class="chip ${stageCls}">${stageLbl}${stage !== "todo" ? " · " + date(r.replied_at || r.message_sent_at || r.note_sent_at) : ""}</span></div>
+        <div class="pc-who"><div><b>${esc(r.name)}</b> ${whoChip(r)} <span class="chip ${stageCls}">${stageLbl}${stage !== "todo" ? " · " + date(r.replied_at || r.message_sent_at || r.note_sent_at) : ""}</span></div>
           <div class="muted small">${esc(r.title || "")}</div></div>
         <button class="rowdel" data-del title="Remove this person" aria-label="Remove">${ICON.trash}</button></div>
       <div class="pc-note"><div class="small muted">Connection note <span data-count>${(r.note || "").length}</span>/200</div><div class="note-txt" data-notetxt>${esc(r.note || "")}</div></div>
@@ -559,3 +566,152 @@ applyTheme();
   await renderMain();
   watchScan();
 })();
+
+// ------------------------------------------------------------------ prep tab: crash courses, job brief, mock interview
+let PREP = { view: "home", iv: null, job: "", kind: "hr", coach: true, speak: false };
+const KIND_HELP = { hr: "Background, why you're switching, CTC and notice period", role: "Deep questions on the skills this job needs",
+  behavioral: "STAR stories: launches, failures, conflicts", case: "A business case and a guesstimate", salary: "The recruiter makes an offer. Negotiate it.",
+  remote: "Remote-first company abroad: async work, time zones, contracts" };
+
+async function renderPrep() {
+  if (PREP.view === "interview" && PREP.iv) return $("#chat") ? undefined : renderInterview();   // keep a half-typed answer
+  const [courses, ivs, jobs] = await Promise.all([api("/api/prep/courses"), api("/api/interviews"), api("/api/jobs?max_age=10")]);
+  const mine = jobs.filter(j => isApplied(j) || j.score >= (HEALTH?.settings?.min_score_to_shortlist ?? 70)).slice(0, 60);
+  const jobOpts = sel => `<option value="">No specific job</option>${mine.map(j => `<option value="${esc(j.id)}" ${sel === j.id ? "selected" : ""}>${esc(j.company)} · ${esc(j.title)}${isApplied(j) ? " (applied)" : ""}</option>`).join("")}`;
+  const scoreCls = s => s >= 7 ? "good" : s >= 5 ? "warn" : "bad";
+  $("#prep").innerHTML = `
+    <div class="head"><div><h2>Prep</h2><div class="sub">Practise with an AI interviewer, get a prep brief for each job, and read short crash courses.</div></div></div>
+    <div class="prep-grid">
+      <div class="card iv-card"><div class="rv-title">Mock interview</div>
+        ${ivs.claude ? `<p class="muted small" style="margin:2px 0 12px">Answer by typing or by speaking. At the end you get a score and a better version of each answer.</p>
+        <div class="kinds">${Object.entries(ivs.kinds).map(([k, v]) => `<button class="kind ${PREP.kind === k ? "on" : ""}" data-kind="${k}"><b>${esc(v)}</b><span>${esc(KIND_HELP[k] || "")}</span></button>`).join("")}</div>
+        <div class="form" style="margin-top:12px"><label>For which job<select id="ivJob">${jobOpts(PREP.job)}</select></label>
+          <label id="ivRoleWrap" class="${PREP.job ? "hidden" : ""}">Role to practise for<input id="ivRole" placeholder="e.g. Product Marketing Manager"></label></div>
+        <label class="row small" style="margin-top:10px"><input type="checkbox" id="ivCoach" ${PREP.coach ? "checked" : ""}> Give me a tip after each answer</label>
+        <div class="row" style="margin-top:12px"><button class="btn primary" id="ivStart">Start interview</button></div>`
+        : `<p class="small" style="margin:4px 0 10px">The mock interviewer and job briefs use Claude. Paste an Anthropic API key to turn them on.
+            Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. A 20-minute mock interview costs a few rupees.</p>
+          <div class="row"><input id="ckKey" type="password" placeholder="sk-ant-…" autocomplete="off" style="flex:1"><button class="btn primary" id="ckSave">Save key</button></div>
+          <p class="muted small">The key is saved only in the <code>.env</code> file on this computer. With Claude on, cover letters and emails are also drafted by Claude.</p>`}
+        ${ivs.history.length ? `<div class="section-title">Past interviews</div><div class="group">${ivs.history.map(h => `<div class="item row space" data-iv="${h.id}" role="button" tabindex="0">
+            <span><b>${esc(h.kind_label)}</b> <span class="muted small">· ${esc(h.company)} · ${esc(h.role)} · ${esc((h.created_at || "").slice(0, 10))}</span></span>
+            <span class="row">${h.feedback ? `<span class="chip ${scoreCls(h.feedback.overall_score)}">${h.feedback.overall_score}/10</span>` : `<span class="chip">${h.turns} answers</span>`}
+              <button class="rowdel" data-ivdel="${h.id}" aria-label="Delete">${ICON.trash}</button></span></div>`).join("")}</div>` : ""}
+      </div>
+      <div class="card"><div class="rv-title">Prep brief for a job</div>
+        <p class="muted small" style="margin:2px 0 10px">What they want, which of your stories to tell, your gaps and how to handle them, likely questions, and what to ask them.</p>
+        <div class="row"><select id="brJob" style="flex:1">${jobOpts(PREP.job)}</select><button class="btn" id="brGo">Make brief</button></div>
+        <div id="brief"></div></div>
+    </div>
+    <div class="section-title" style="margin-top:20px">Crash courses</div>
+    <div class="courses">${courses.map(c => `<button class="course" data-course="${c.id}"><span class="chip">${esc(c.tag)}</span><b>${esc(c.title)}</b>
+      <span class="muted small">${esc(c.summary)}</span><span class="small muted">${c.minutes} min read</span></button>`).join("")}</div>`;
+  $$("[data-kind]").forEach(b => b.onclick = () => { PREP.kind = b.dataset.kind; $$("[data-kind]").forEach(x => x.classList.toggle("on", x === b)); });
+  const ij = $("#ivJob"); if (ij) ij.onchange = () => { PREP.job = ij.value; $("#ivRoleWrap").classList.toggle("hidden", !!ij.value); };
+  const ic = $("#ivCoach"); if (ic) ic.onchange = () => PREP.coach = ic.checked;
+  const st = $("#ivStart"); if (st) st.onclick = () => run(st, async () => {
+    st.textContent = "Calling the interviewer…";
+    PREP.iv = await post("/api/interviews", { kind: PREP.kind, job_id: $("#ivJob").value, role: $("#ivRole")?.value, coach: PREP.coach });
+    PREP.view = "interview"; renderInterview(); });
+  const ck = $("#ckSave"); if (ck) ck.onclick = () => run(ck, async () => { await post("/api/claude-key", { key: $("#ckKey").value }); HEALTH = null; toast("Claude connected"); renderPrep(); });
+  $$("[data-iv]").forEach(r => r.onclick = async e => { if (e.target.closest("[data-ivdel]")) return; PREP.iv = await api(`/api/interviews/${r.dataset.iv}`); PREP.view = "interview"; renderInterview(); });
+  $$("[data-ivdel]").forEach(b => b.onclick = async () => { if (confirm("Delete this interview?")) { await del(`/api/interviews/${b.dataset.ivdel}`); renderPrep(); } });
+  $$("[data-course]").forEach(b => b.onclick = () => openCourse(b.dataset.course));
+  $("#brGo").onclick = e => run(e.target, async () => {
+    const id = $("#brJob").value; if (!id) { toast("Pick a job first."); return; }
+    e.target.textContent = "Reading the job…"; $("#brief").innerHTML = briefHtml(await api(`/api/prep/job/${id}`)); wireBrief(); });
+  if (PREP.job && $("#brJob").value) api(`/api/prep/job/${PREP.job}`).then(b => { $("#brief").innerHTML = briefHtml(b); wireBrief(); }).catch(() => {});
+}
+
+function briefHtml(b) {
+  const list = (h, items) => items?.length ? `<div class="bh">${h}</div><ul class="blist">${items.map(i => `<li>${i}</li>`).join("")}</ul>` : "";
+  return `<div class="brief">
+    <div class="small muted" style="margin-top:12px">${esc(b.job.company)} · ${esc(b.job.title)} · ${b.generator === "claude" ? "written by Claude from the JD and your resume" : "basic version (connect Claude for a full brief)"}</div>
+    ${b.about_company ? `<p>${esc(b.about_company)}</p>` : ""}
+    ${list("What they want most", b.what_they_want.map(esc))}
+    ${list("Your stories to tell", b.your_best_stories.map(s => `<b>${esc(s.for)}:</b> ${esc(s.story)}`))}
+    ${list("Gaps and how to handle them", b.gaps.map(g => `<b>${esc(g.gap)}:</b> ${esc(g.how_to_handle)}`))}
+    ${list("Likely questions", b.likely_questions.map(esc))}
+    ${list("Ask them", b.questions_to_ask.map(esc))}
+    <div class="row" style="margin-top:10px"><button class="btn primary" data-practise="${esc(b.job.id)}">Practise for this job</button>
+      <button class="btn plain" data-rebrief="${esc(b.job.id)}">Rewrite brief</button><button class="btn plain" data-course="${esc(b.course)}">Open the crash course</button></div></div>`;
+}
+function wireBrief() {
+  $$("#brief [data-practise]").forEach(b => b.onclick = () => { PREP.job = b.dataset.practise; PREP.kind = "role"; renderPrep().then(() => $(".iv-card")?.scrollIntoView({ behavior: "smooth" })); });
+  $$("#brief [data-rebrief]").forEach(b => b.onclick = () => run(b, async () => { $("#brief").innerHTML = briefHtml(await api(`/api/prep/job/${b.dataset.rebrief}?refresh=true`)); wireBrief(); }));
+  $$("#brief [data-course]").forEach(b => b.onclick = () => openCourse(b.dataset.course));
+}
+
+async function openCourse(id) {
+  const c = await api(`/api/prep/courses/${id}`);
+  openPanel("#drawer", `<div class="p-head"><span class="chip">${esc(c.tag)} · ${c.minutes} min</span><button class="icon" data-close aria-label="Close">&times;</button></div>
+    <h2 style="margin:6px 0 4px">${esc(c.title)}</h2><p class="muted">${esc(c.summary)}</p>
+    ${c.sections.map(s => `<div class="section-title">${esc(s.h)}</div><ul class="blist">${s.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`).join("")}
+    <div class="section-title">Practise these questions</div><ol class="blist">${c.practice.map(q => `<li>${esc(q)}</li>`).join("")}</ol>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="coursePractise">Practise with the mock interviewer</button></div>`);
+  $("#coursePractise").onclick = () => {
+    PREP.kind = id === "salary" ? "salary" : id === "basics" ? "behavioral" : id === "case" ? "case" : id === "remote_abroad" ? "remote" : "role";
+    PREP.view = "home"; closePanels(); showTab("prep"); };
+}
+
+// ---- the interview itself
+let REC = null;
+function speak(text) {
+  if (!PREP.speak || !window.speechSynthesis) return;
+  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/^Tip:.*$/m, "").trim()); u.lang = "en-IN"; u.rate = 1.02; speechSynthesis.speak(u);
+}
+function renderInterview() {
+  const iv = PREP.iv, fb = iv.feedback;
+  const bubbles = iv.messages.map(m => {
+    const tip = m.role === "assistant" && /^Tip:/m.test(m.text) ? m.text.match(/^Tip:.*$/m)[0] : "";
+    const body = tip ? m.text.replace(tip, "").trim() : m.text;
+    return `${tip ? `<div class="tip">${esc(tip)}</div>` : ""}<div class="bub ${m.role === "assistant" ? "them" : "me"}">${esc(body).replace(/\n/g, "<br>")}</div>`;
+  }).join("");
+  $("#prep").innerHTML = `
+    <div class="head"><div><a href="#" id="ivBack" class="small">‹ Prep</a><h2>${esc(iv.kind_label)}</h2><div class="sub">${esc(iv.company)} · ${esc(iv.role)}${iv.coach ? " · tips on" : ""}</div></div>
+      <div class="row">${!fb ? `<label class="row small"><input type="checkbox" id="ivSpeak" ${PREP.speak ? "checked" : ""}> Read questions aloud</label>` : ""}</div></div>
+    <div class="chat card" id="chat">${bubbles}${iv.ended && !fb ? '<div class="muted small center">The interviewer has wrapped up.</div>' : ""}</div>
+    ${fb ? feedbackHtml(fb) : `<div class="composer card">
+      ${iv.ended ? "" : `<textarea id="ans" placeholder="Type your answer, or press the mic and speak. Ctrl+Enter sends."></textarea>
+      <div class="row space"><span class="row"><button class="btn" id="mic" ${("webkitSpeechRecognition" in window || "SpeechRecognition" in window) ? "" : "disabled title='Voice input needs Chrome or Edge'"}>🎤 Speak</button>
+        <span class="muted small" id="micState"></span></span>
+        <span class="row"><button class="btn" id="ivFinish">End and get feedback</button><button class="btn primary" id="ivSend">Send answer</button></span></div>`}
+      ${iv.ended ? `<div class="row"><button class="btn primary" id="ivFinish">Get my feedback</button></div>` : ""}</div>`}`;
+  const chat = $("#chat"); chat.scrollTop = chat.scrollHeight;
+  $("#ivBack").onclick = e => { e.preventDefault(); if (REC) REC.stop(); speechSynthesis?.cancel(); PREP.view = "home"; PREP.iv = null; renderPrep(); };
+  const sp = $("#ivSpeak"); if (sp) sp.onchange = () => { PREP.speak = sp.checked; if (sp.checked) speak(iv.messages.at(-1)?.text || ""); else speechSynthesis?.cancel(); };
+  const fin = $("#ivFinish"); if (fin) fin.onclick = () => run(fin, async () => {
+    if (!iv.ended && !confirm("End the interview now and get feedback?")) return;
+    fin.textContent = "Scoring your answers…"; PREP.iv = await post(`/api/interviews/${iv.id}/finish`); renderInterview(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  const ans = $("#ans"); if (!ans) return;
+  ans.focus();
+  const send = $("#ivSend");
+  send.onclick = () => run(send, async () => {
+    if (REC) REC.stop();
+    if (!ans.value.trim()) { toast("Type or speak your answer first."); return; }
+    send.textContent = "Interviewer is thinking…";
+    PREP.iv = await post(`/api/interviews/${iv.id}/answer`, { text: ans.value }); renderInterview(); speak(PREP.iv.messages.at(-1).text); });
+  ans.onkeydown = e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) send.click(); };
+  const mic = $("#mic"); mic.onclick = () => {
+    if (REC) { REC.stop(); return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; REC = new SR();
+    REC.lang = "en-IN"; REC.continuous = true; REC.interimResults = true;
+    const base = ans.value ? ans.value.trimEnd() + " " : "";
+    REC.onresult = e => { ans.value = base + [...e.results].map(r => r[0].transcript).join(" "); };
+    REC.onend = () => { REC = null; mic.textContent = "🎤 Speak"; $("#micState").textContent = ""; };
+    REC.onerror = e => toast(e.error === "not-allowed" ? "Allow the microphone for this page in Chrome." : "Voice input stopped: " + e.error);
+    REC.start(); mic.textContent = "■ Stop"; $("#micState").textContent = "Listening…";
+  };
+}
+function feedbackHtml(f) {
+  const cls = s => s >= 7 ? "good" : s >= 5 ? "warn" : "bad";
+  return `<div class="card fb"><div class="fb-top"><div class="fb-score ${cls(f.overall_score)}">${f.overall_score}<span>/10</span></div><div><div class="rv-title">Your result</div><div>${esc(f.verdict)}</div></div></div>
+    <div class="bars">${f.scores.map(s => `<div class="bar-row"><span>${esc(s.area)}</span><span class="bar"><i class="${cls(s.score)}" style="width:${s.score * 10}%"></i></span><b>${s.score}</b><span class="muted small">${esc(s.comment)}</span></div>`).join("")}</div>
+    <div class="two"><div><div class="bh">What went well</div><ul class="blist">${f.strengths.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div><div class="bh">Fix these first</div><ul class="blist">${f.improve.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
+    <div class="bh">Answer by answer</div>${f.answers.map(a => `<details class="ans"><summary>${esc(a.question)}</summary>
+      <p><b>Worked:</b> ${esc(a.what_worked)}</p><p><b>Fix:</b> ${esc(a.what_to_fix)}</p><div class="better"><div class="small muted">A stronger answer</div>${esc(a.better_answer)}</div></details>`).join("")}
+    <div class="bh">Practise next</div><ul class="blist">${f.next_practice.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="ivAgain">Practise again</button></div></div>`;
+}
+document.addEventListener("click", e => { if (e.target.id === "ivAgain") { PREP.view = "home"; PREP.iv = null; renderPrep(); } });

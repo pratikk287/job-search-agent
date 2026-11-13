@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from . import config, db, mix, resumes, scoring, verify
 from .keywords import is_relevant_title
-from .sources import aggregators, employers, firecrawl
+from .sources import aggregators, employers, firecrawl, remote
 from .sources.common import age_days, dedupe_key, is_india, pick_city
 
 state = {"running": False, "progress": [], "summary": None, "started_at": None,
@@ -192,6 +192,8 @@ def run_scan(include_employers=True, include_aggregators=True):
                 for kw, city in next_queries(name, s, limit=n):
                     tasks.append((f"{name}: {kw} / {city}", None,
                                   lambda fn=fn, kw=kw, city=city: fn(kw, city, s["max_job_age_days"])))
+        if s.get("international_remote", True):         # free boards: US / UK / APAC companies hiring remotely in India
+            tasks += [(label, None, fn) for label, fn in remote.tasks(s["search_keywords"], s["max_job_age_days"])]
         _progress(f"Scanning {len(tasks)} sources")
         state.update({"total": len(tasks) + (1 if include_aggregators else 0), "done": 0, "phase": "Searching for jobs"})
 

@@ -59,7 +59,8 @@ def parse_profile(result, company):
     role = re.sub(r"\s+(at|@)\s+.*$", "", head[1] if len(head) > 1 else "", flags=re.I).strip()
     if not role or role.lower().startswith(first_word) or role.lower() == "linkedin":
         role = re.sub(r"\s+(at|@)\s+.*$", "", desc.split(" · ")[0][:80], flags=re.I).strip()
-    return {"name": name, "title": role[:90], "linkedin_url": f"https://www.linkedin.com/in/{m.group(1)}", "_text": f"{title} {desc[:160]}".lower()}
+    return {"name": name, "title": role[:90], "linkedin_url": f"https://www.linkedin.com/in/{m.group(1)}", "_text": f"{title} {desc[:160]}".lower(),
+            "_full": f"{title} {desc}".lower()}
 
 
 def _hr_score(p):
@@ -93,6 +94,67 @@ def _relevance_bonus(p, job):
     return bonus + (1 if city and city not in ("remote", "india") and city in text else 0)
 
 
+# ------------------------------------------------------------------ common ground (same college, same company)
+
+SCHOOL_ALIASES = {"nmims": ["nmims", "narsee monjee"], "iim": ["indian institute of management"], "iit": ["indian institute of technology"]}
+GENERIC_ORG = {"college", "university", "institute", "school", "the", "and", "management", "studies", "pvt", "ltd", "limited", "india"}
+
+
+def _org_terms(name):
+    """'NMIMS, Mumbai' -> ['nmims', 'narsee monjee']; 'A&B Logistics' -> ['a&b logistics', 'logistics']."""
+    head = re.split(r",| - |\(", name or "")[0].strip().lower()
+    if not head:
+        return []
+    terms = [head]
+    for key, al in SCHOOL_ALIASES.items():
+        if key in head.split():
+            terms += al
+    words = [w for w in re.findall(r"[a-z&]{3,}", head) if w not in GENERIC_ORG]
+    if "&" in head and len(words) > 1 and len(words[-1]) >= 5:
+        terms.append(words[-1])            # 'a&b logistics' -> 'logistics' (only after a group prefix like A&B)
+    return list(dict.fromkeys(terms))
+
+
+def common_ground():
+    """What the candidate shares with people: colleges and employers. `common_ground` in the profile wins; otherwise
+    it is built from the profile's education and the employers on the resume."""
+    prof = config.profile()
+    if prof.get("common_ground"):
+        return prof["common_ground"]
+    out = []
+    for e in prof.get("education", []):
+        terms = _org_terms(e.get("school"))
+        if terms:
+            short = (e.get("school") or "").split(",")[0].strip()
+            out.append({"label": f"{short} alum", "kind": "school", "match": terms, "phrase": f"Fellow {short} alum here."})
+    employers = [prof.get("current_employer")]
+    try:
+        employers += [r["company"] for r in resumes.load("A")["experience"]]
+    except Exception:
+        pass
+    for name in {e.lower(): e for e in reversed([e for e in employers if e])}.values():
+        terms = _org_terms(name)
+        if terms:
+            out.append({"label": f"{name} connection", "kind": "work", "match": terms, "phrase": f"Saw we share {name}."})
+    return out
+
+
+def shared_with(p):
+    """What this person shares with the candidate, in profile order (college before employer)."""
+    text = p.get("_full") or p.get("_text") or ""
+    return [g for g in common_ground()
+            if any(re.search(r"(?<![a-z])" + re.escape(t.lower()) + r"(?![a-z])", text) for t in g["match"])]
+
+
+def _common_query(company):
+    terms = []
+    for g in common_ground():
+        terms += g["match"][:2]
+    terms = list(dict.fromkeys(terms))[:6]
+    ors = " OR ".join(f'"{t}"' if " " in t or "&" in t else t for t in terms)
+    return f'site:linkedin.com/in "{company}" ({ors})' if terms else None
+
+
 def people_per_job():
     return min(3, max(2, int(config.settings().get("people_per_job", 3))))
 
@@ -105,10 +167,17 @@ def find_people(job, limit=None):
     fn = job.get("function") or "product_marketing"
     hr_hits = firecrawl.search(f'site:linkedin.com/in {company} {where} ("talent acquisition" OR recruiter OR "HR business partner")')
     dept_hits = firecrawl.search(f'site:linkedin.com/in {company} India {FUNCTION_QUERY.get(fn, "marketing")} (head OR director OR lead OR manager)')
-    hr = sorted([p for p in (parse_profile(r, company) for r in hr_hits) if p and _hr_score(p) > 0],
-                key=lambda p: -(_hr_score(p) + _relevance_bonus(p, job)))
-    dept = sorted([p for p in (parse_profile(r, company) for r in dept_hits) if p and _dept_score(p, fn) > 0],
-                  key=lambda p: -(_dept_score(p, fn) + _relevance_bonus(p, job)))
+    cq = _common_query(company)
+    common_hits = firecrawl.search(cq) if cq else []         # alumni and ex-colleagues who work there now
+    pool = {}
+    for p in (parse_profile(r, company) for r in hr_hits + dept_hits + common_hits):
+        if p:
+            p["common"] = shared_with(p)
+            pool.setdefault(p["linkedin_url"], p)
+    people = list(pool.values())
+    bonus = lambda p: 3 if p["common"] else 0       # same college or company: far more likely to accept and reply
+    hr = sorted([p for p in people if _hr_score(p) > 0], key=lambda p: -(_hr_score(p) + _relevance_bonus(p, job) + bonus(p)))
+    dept = sorted([p for p in people if _dept_score(p, fn) > 0], key=lambda p: -(_dept_score(p, fn) + _relevance_bonus(p, job) + bonus(p)))
     chosen = [(hr[0], "recruiter")] if hr else []                       # one HR contact
     for p in dept:                                                      # then the most relevant hiring-team people
         if len(chosen) < limit:
@@ -116,11 +185,19 @@ def find_people(job, limit=None):
     for p in hr[1:]:                                                    # not enough team people: a second HR contact
         if len(chosen) < min(limit, 2):
             chosen.append((p, "recruiter"))
+    chosen = chosen[:limit]
+    if not any(p["common"] for p, _ in chosen):              # nobody shared: add one alum / ex-colleague for a warm intro
+        picked = {p["linkedin_url"] for p, _ in chosen}
+        alum = sorted([p for p in people if p["common"] and p["linkedin_url"] not in picked],
+                      key=lambda p: -(_relevance_bonus(p, job) + (2 if re.search(FUNCTION_WORDS.get(fn, "marketing"), p["title"].lower()) else 0)))
+        if alum:
+            chosen.append((alum[0], "referral"))
     seen, out = set(), []
-    for p, kind in chosen[:limit]:
+    for p, kind in chosen:
         if p["linkedin_url"] not in seen:
             seen.add(p["linkedin_url"])
-            out.append({**p, "role_type": kind})
+            out.append({**p, "role_type": kind, "common_label": ", ".join(g["label"] for g in p["common"]),
+                        "common_phrase": p["common"][0]["phrase"] if p["common"] else ""})
     return out
 
 
@@ -143,6 +220,20 @@ def linkedin_note(job, person):
     first = (person.get("name") or "").split()[0]
     role = short_role(job)
     pt = config.pitch()
+    cp = person.get("common_phrase") or ""
+    hi = f"Hi {first}, {cp[:1].lower() + cp[1:]}" if cp else f"Hi {first},"
+    if person["role_type"] == "referral":
+        options = [f"{hi} I've applied for {role} at {job['company']}. Would you be open to a quick chat about the team, or a referral if my profile fits?",
+                   f"{hi} I've applied for {role} at {job['company']}. Would love to connect and hear how you find it there.",
+                   f"Hi {first}, applied for {role} at {job['company']}. Would value connecting."]
+        return next(o for o in options if len(o) <= 200)
+    if person.get("common_phrase"):
+        intro = pt["hr" if person["role_type"] == "recruiter" else "team"]
+        options = [f"{hi} I've applied for {role} at {job['company']}. {intro} Would be glad to connect.",
+                   f"{hi} I've applied for {role} at {job['company']}. Would be glad to connect."]
+        hit = next((o for o in options if len(o) <= 200), None)
+        if hit:
+            return hit
     if person["role_type"] == "recruiter":
         options = [f"Hi {first}, I've applied for the {role} role at {job['company']}. {pt['hr']} Would be glad to connect and share my profile.",
                    f"Hi {first}, I've applied for {role} at {job['company']}. Would love to connect and be on your radar for it.",
@@ -159,6 +250,11 @@ def follow_up_message(job, person):
     key = job.get("resume_key") or "A"
     a = outreach._short(resumes.achievements(key, job, n=1)[0]["bullet"]) if resumes.achievements(key, job, n=1) else ""
     role = short_role(job)
+    if person["role_type"] == "referral":
+        shared = f" ({person['common_label']})" if person.get("common_label") else ""
+        return (f"Hi {first}, thanks for connecting{shared}. I've applied for the {role} role at {job['company']}. "
+                f"In my current role I {a}. If you think my profile fits, would you be open to referring me, "
+                f"or pointing me to the right person on the team? Happy to share my resume. Thank you!")
     if person["role_type"] == "recruiter":
         return (f"Hi {first}, thanks for connecting. I've applied for the {role} role at {job['company']}"
                 f" and wanted to put a face to the application. In my current role I {a}. "
@@ -204,7 +300,8 @@ def append_to_sheet(job, people):
             if (job["company"], job["title"], p["linkedin_url"]) in have_jobs:
                 continue
             ws.append([datetime.now().strftime("%d %b %Y"), job["company"], job["title"], job.get("url") or "", p["name"], p["title"],
-                       "HR / recruiter" if p["role_type"] == "recruiter" else "Hiring team", p["linkedin_url"],
+                       {"recruiter": "HR / recruiter", "referral": "Alum / ex-colleague"}.get(p["role_type"], "Hiring team")
+                       + (f" · {p['common_label']}" if p.get("common_label") else ""), p["linkedin_url"],
                        linkedin_note(job, p), follow_up_message(job, p), p.get("email") or "", "", "", ""])
             row = ws.max_row
             ws.cell(row=row, column=8).hyperlink = p["linkedin_url"]
@@ -261,7 +358,8 @@ def research_job(job_id, queue_emails=False):
             db.insert("li_outreach", {
                 "job_id": job_id, "contact_id": p.get("contact_id"), "company": job["company"], "job_title": job["title"],
                 "job_url": job.get("url"), "name": p["name"], "title": p["title"],
-                "who": "hr" if p["role_type"] == "recruiter" else "team", "linkedin_url": p["linkedin_url"],
+                "who": {"recruiter": "hr", "referral": "alum"}.get(p["role_type"], "team"), "linkedin_url": p["linkedin_url"],
+                "common": p.get("common_label") or None,
                 "note": linkedin_note(job, p), "message": follow_up_message(job, p), "email_guess": p.get("email"),
                 "created_at": db.now()})
         except Exception:

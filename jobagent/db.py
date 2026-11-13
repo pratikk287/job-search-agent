@@ -133,6 +133,19 @@ CREATE TABLE IF NOT EXISTS email_patterns (
     created_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS interviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT,
+    kind TEXT,                       -- hr | role | behavioral | case | salary | remote
+    role TEXT,
+    company TEXT,
+    coach INTEGER DEFAULT 0,         -- 1 = a tip after every answer
+    messages TEXT,                   -- JSON list of {role, content}
+    feedback TEXT,                   -- JSON scorecard
+    created_at TEXT,
+    finished_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS scans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     started_at TEXT,
@@ -162,11 +175,12 @@ def conn():
         if _conn is None:
             _conn = connect()
             _conn.executescript(SCHEMA)
-            try:
-                _conn.execute("ALTER TABLE email_patterns ADD COLUMN tried TEXT")
-                _conn.commit()
-            except Exception:
-                pass            # column already exists
+            for ddl in ("ALTER TABLE email_patterns ADD COLUMN tried TEXT", "ALTER TABLE li_outreach ADD COLUMN common TEXT"):
+                try:
+                    _conn.execute(ddl)
+                    _conn.commit()
+                except Exception:
+                    pass        # column already exists
         return _conn
 
 

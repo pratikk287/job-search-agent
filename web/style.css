@@ -170,3 +170,44 @@ details { margin-top: 12px; } summary { cursor: pointer; font-weight: 500; paddi
 .pc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .pc-actions .edit { flex-basis: 100%; } .pc-actions .edit summary { cursor: pointer; color: var(--accent); }
 .pc-email { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; } .em-in { flex: 1; min-width: 160px; padding: 6px 10px; font-size: 14px; }
 @media (max-width: 720px) { .pgrid { grid-template-columns: 1fr; } .steps-help { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* Common ground on the Sheet */
+.chip.common { background: rgba(175, 82, 222, .14); color: #8944ab; }
+:root[data-theme="dark"] .chip.common { color: #d29ef0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip.common { color: #d29ef0; } }
+
+/* Prep tab */
+.prep-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; }
+.kinds { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.kind { text-align: left; border: 1px solid var(--line); background: var(--surface2); color: var(--text); border-radius: 12px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 2px; cursor: pointer; font: inherit; }
+.kind span { font-size: 12px; color: var(--text2); } .kind.on { border-color: var(--accent); background: var(--accent-soft); }
+.courses { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.course { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 6px; cursor: pointer; font: inherit; color: var(--text); }
+.course:hover { border-color: var(--accent); } .course .chip { align-self: flex-start; }
+.blist { margin: 4px 0 10px; padding-left: 20px; } .blist li { margin: 4px 0; }
+.bh { font-weight: 600; margin: 14px 0 2px; }
+.brief p { margin: 8px 0; }
+[data-iv] { cursor: pointer; } [data-iv]:hover { background: var(--surface2); }
+.chat { max-height: 58vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; margin-top: 12px; }
+.bub { max-width: 78%; padding: 10px 14px; border-radius: 18px; white-space: normal; }
+.bub.them { background: var(--surface2); align-self: flex-start; border-bottom-left-radius: 6px; }
+.bub.me { background: var(--accent); color: var(--accent-ink); align-self: flex-end; border-bottom-right-radius: 6px; }
+.tip { align-self: flex-start; font-size: 13px; background: var(--green-soft); color: var(--green); padding: 6px 12px; border-radius: 10px; max-width: 78%; }
+.center { text-align: center; }
+.composer { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.composer textarea { min-height: 110px; }
+.fb { margin-top: 12px; } .fb-top { display: flex; gap: 16px; align-items: center; }
+.fb-score { font-size: 44px; font-weight: 700; line-height: 1; } .fb-score span { font-size: 18px; color: var(--text2); }
+.fb-score.good { color: var(--green); } .fb-score.warn { color: var(--orange); } .fb-score.bad { color: var(--red); }
+.bars { margin: 16px 0 6px; display: grid; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 170px 1fr 28px; gap: 4px 10px; align-items: center; }
+.bar-row .muted { grid-column: 1 / -1; margin: -2px 0 4px; }
+.bar { height: 8px; background: var(--surface2); border-radius: 8px; overflow: hidden; } .bar i { display: block; height: 100%; border-radius: 8px; }
+.bar i.good { background: var(--green); } .bar i.warn { background: var(--orange); } .bar i.bad { background: var(--red); }
+.two { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+details.ans { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin: 8px 0; }
+details.ans summary { cursor: pointer; font-weight: 600; } details.ans p { margin: 8px 0; }
+.better { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; margin-top: 6px; }
+@media (max-width: 600px) { .prep-grid { grid-template-columns: 1fr; } .bub, .tip { max-width: 92%; } .bar-row { grid-template-columns: 110px 1fr 24px; } }
